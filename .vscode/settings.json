@@ -1,0 +1,21 @@
+{
+    "python.analysis.typeCheckingMode": "basic",
+    "python.analysis.autoImportCompletions": true,
+    "python.analysis.extraPaths": [
+        "./src"
+    ],
+    "cSpell.language": "en,de",
+    "autopep8.args": [
+        "--max-line-length=120"
+    ],
+    "pylint.args": [
+        "--max-line-length=120"
+    ],
+    "cSpell.words": [
+        "Breunung",
+        "dotenv",
+        "odata",
+        "Zwergenland"
+    ],
+    "pylint.importStrategy": "fromEnvironment",
+}
