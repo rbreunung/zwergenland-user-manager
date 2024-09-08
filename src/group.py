@@ -36,7 +36,7 @@ class GroupHandler:   # [too-few-public-methods]
         print("--- creating group ---")
         print(json.dumps(response.json(), indent=2))
         print("---")
-        return response.json().get('value', None)
+        return response.json()
 
     def get_group(self, group_name: str) -> Dict | None:
         """Get a Microsoft 365 group by the starting letters of the Name."""
