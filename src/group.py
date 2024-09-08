@@ -38,28 +38,24 @@ class GroupHandler:   # [too-few-public-methods]
         print("---")
         return response.json()
 
-    def get_group(self, group_name: str) -> Dict | None:
-        """Get a Microsoft 365 group by the starting letters of the Name."""
+    def get_groups(self, group_prefix: str) -> List:
+        """Get a Microsoft 365 groups by the starting letters of the Name."""
         params = {
-            "$filter": f"startswith(displayName, '{group_name}')"  # 'contains' is not supported.
+            "$filter": f"startswith(displayName, '{group_prefix}')"
         }
 
         response = requests.get(GROUPS_URL, headers=self._headers, params=params, timeout=30)
 
         # Check the response status and print the results
         if response.status_code == 200:
-            groups = response.json().get('value', None)
-            if groups:
-                if len(groups) > 1:
-                    print(f"--- {len(groups)} group(s) found. Taking following ---")
-                else:
-                    print("--- found group ---")
-                for group in groups:
-                    print(json.dumps(group, indent=2))
-                    print("---")
-                    return group
+            groups: List = response.json().get('value', [])
+            if len(groups):
+                print(f"--- {len(groups)} group(s) found. ---")
+                print(json.dumps(groups, indent=2))
+                print("---")
             else:
-                print(f"No group found starting with '{group_name}'.")
+                print(f"No groups found starting with '{group_prefix}'.")
+            return groups
         else:
             print(f"Error: {response.status_code}")
             print(response.json())
@@ -69,10 +65,12 @@ class GroupHandler:   # [too-few-public-methods]
     def get_or_create(self, group: GroupDetails) -> Dict | None:
         """Try to find an existing group with the specified name.
         If it is not found, then it will be created with the given details."""
-        found_group = self.get_group(group.name)
+        found_groups = self.get_groups(group.name)
 
-        if found_group:
-            return found_group
+        if found_groups:
+            if len(found_groups) > 1:
+                print(f"Taking first found group {found_groups[0]['id']}.")
+            return found_groups[0]
 
         return self.create_group(group)
 
@@ -108,7 +106,7 @@ class GroupHandler:   # [too-few-public-methods]
 
         if response.status_code == 200:  # 200 OK means success
             members = response.json().get('value', [])
-            print(f"--- Mitglieder von {group_id} ---")
+            print(f"--- Members of group {group_id} ---")
             for member in members:
                 print(json.dumps(member, indent=2))
                 print("---")
