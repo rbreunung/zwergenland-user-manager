@@ -14,7 +14,10 @@
     "cSpell.words": [
         "Breunung",
         "dotenv",
+        "iloc",
+        "isna",
         "odata",
+        "openpyxl",
         "Zwergenland"
     ],
     "pylint.importStrategy": "fromEnvironment",
