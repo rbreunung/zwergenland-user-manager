@@ -1,2 +1,5 @@
+click
+openpyxl
+pandas
 python-dotenv
 requests
