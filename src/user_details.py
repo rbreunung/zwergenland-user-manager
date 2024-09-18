@@ -17,6 +17,16 @@ class UserDetails:
         else:
             self._display_name = display_name
 
+    def __str__(self) -> str:
+        return f"first: {self._first_name} last: {self._lastname} email: {self.email}"
+
+    def to_dict(self):
+        return {"firstName": self._first_name, "lastname": self._lastname, "email": self.email}
+
+    @classmethod
+    def from_dict(cls, dict_obj):
+        return cls(dict_obj["firstName"], dict_obj["lastname"], dict_obj["email"])
+
     def get_user_details_dict(self) -> Dict[str, Any]:
         """Get a dictionary for serialization to Microsoft users graph API."""
         return {
