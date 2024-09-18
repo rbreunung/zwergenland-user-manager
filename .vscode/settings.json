@@ -6,10 +6,10 @@
     ],
     "cSpell.language": "en,de",
     "autopep8.args": [
-        "--max-line-length=120"
+        "--max-line-length=160"
     ],
     "pylint.args": [
-        "--max-line-length=120"
+        "--max-line-length=160"
     ],
     "cSpell.words": [
         "Breunung",
