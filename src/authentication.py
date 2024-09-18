@@ -10,8 +10,11 @@ def authenticate(env: Dict[str, str | None]) -> str:
     """Authenticate with Microsoft 365 and provide an authentication token used with other APIs."""
 
     client_id = env['CLIENT_ID']
+    assert client_id is not None
     client_secret = env['CLIENT_SECRET']
+    assert client_secret is not None
     tenant_id = env['TENANT_ID']
+    assert tenant_id is not None
     grant_type = 'client_credentials'
     access_url = f"https://login.microsoftonline.com/{tenant_id}/oauth2/v2.0/token"
 
