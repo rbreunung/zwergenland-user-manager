@@ -1,5 +1,5 @@
 """Contains class ExcelReader and default behavior constants."""
-from typing import List
+from typing import List, Optional
 import pandas
 
 from user_details import UserDetails
@@ -78,19 +78,43 @@ class ExcelReader:
 
         return data_frame
 
+    def _check_and_add_user_details(self, first_name, lastname, email, contacts: List[UserDetails], index: int):
+        """Check the input values whether they are feasible to create a user detail to import as a mail contact. Add user if feasible. Else log."""
+        if not pandas.isna(email):
+            print(f"{email} ")
+            contacts.append(UserDetails(str(first_name), str(lastname), str(email)))
+            return
+
+        print(f"User details in line {index} skipped.")
+        return None
+
     def read_contacts(self, config: KindergardenExcelSheetConfiguration | AssociationExcelSheetConfiguration) -> List[UserDetails]:  # pylint: disable=C0301
         """Read the Excel file in the child-parent-format and parse parent contacts."""
         print("\nhello\n")
 
         sheet = self._get_sheet(config)
         assert isinstance(config.first_data_row, int), "First data row is expected to be set here."
-        contacts = []
         last_name_1_column_index = self._excel_col_to_index(config.last_name_1_column)
+        first_name_1_column_index = self._excel_col_to_index(config.first_name_1_column)
+        email_1_column_index = self._excel_col_to_index(config.email_1_column)
+        last_name_2_column_index = self._excel_col_to_index(config.last_name_2_column)
+        first_name_2_column_index = self._excel_col_to_index(config.first_name_2_column)
+        email_2_column_index = self._excel_col_to_index(config.email_2_column)
 
+        contacts: List[UserDetails] = []
         for index in range(config.first_data_row, len(sheet)):
-            cell_value = sheet.iloc[index, last_name_1_column_index]
-            if pandas.isna(cell_value):
-                print(f"Stopping iteration at index {index} where Column {last_name_1_column_index} is empty")
+            last_name_1 = sheet.iloc[index, last_name_1_column_index]
+            first_name_1 = sheet.iloc[index, first_name_1_column_index]
+            email_1 = sheet.iloc[index, email_1_column_index]
+            last_name_2 = sheet.iloc[index, last_name_2_column_index]
+            first_name_2 = sheet.iloc[index, first_name_2_column_index]
+            email_2 = sheet.iloc[index, email_2_column_index]
+
+            if pandas.isna(email_1) and pandas.isna(email_2):
+                print(f"Stopping iteration at index {index} where email Column {email_1_column_index} and {email_2_column_index} are empty.")
                 break
-            print(f"{cell_value} ")
+
+            self._check_and_add_user_details(first_name_1, last_name_1, email_1, contacts, index)
+            self._check_and_add_user_details(first_name_2, last_name_2, email_2, contacts, index)
+
         return contacts
