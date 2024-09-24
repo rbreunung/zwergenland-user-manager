@@ -2,7 +2,8 @@
 
 import json
 import sys
-from typing import Any, Dict
+from typing import Any, Dict, List
+from urllib.parse import parse_qs, urlparse
 import requests
 from user_details import UserDetails
 
@@ -46,23 +47,36 @@ class UserHandler:
         print(json.dumps(response.json(), indent=2))
         sys.exit(1)
 
-    def get_guests(self):
+    def get_guests(self) -> List:
         """Get all users of type guest."""
         params = {
             "$filter": "userType eq 'Guest'"
         }
 
-        response = requests.get(USERS_URL, headers=self._headers, params=params, timeout=30)
+        guests = []
+        url = USERS_URL
 
-        if response.status_code == 200:
-            guests = response.json().get('value', [])
-            print(f"\n\nEs wurden {len(guests)} Gastbenutzer gefunden:\n")
-            for guest in guests:
-                print(json.dumps(guest, indent=2))
-            return guests
-        print(f"Fehler beim Abrufen der Gastbenutzer: {response.status_code}")
-        print(response.json())
-        sys.exit(1)
+        while url:
+            print(f"URL: {url}")
+            parsed_url = urlparse(url)
+
+            query_params = parse_qs(parsed_url.query)  # Extract the query parameters
+            skip_token_value = query_params.get('$skiptoken', [None])[0]  # Get the value of the skiptoken parameter
+            if skip_token_value is not None:
+                params['$skiptoken'] = skip_token_value
+            response = requests.get(USERS_URL, headers=self._headers, params=params, timeout=30)
+
+            if response.status_code == 200:
+                result = response.json()
+                guests.extend(result.get('value', []))
+                url = result.get('@odata.nextLink', None)  # Fetch the next page URL
+            else:
+                print(f"Fehler beim Abrufen der Gastbenutzer: {response.status_code}")
+                print(response.json())
+                sys.exit(1)
+
+        print(f"\n\nEs wurden {len(guests)} Gastbenutzer gefunden.\n")
+        return guests
 
     def find_by_email(self, email: str) -> Dict[str, Any] | None:
         """Find user by 'mail' attribute."""
@@ -103,3 +117,23 @@ class UserHandler:
         print(f"Error Code {response.status_code} while trying to find user id '{user_id}'.")
         print(json.dumps(response.json(), indent=2))
         return None
+
+    def filter_users_without_group(self, users: List) -> List:
+        """Get a list of users and return a list containing those without a group assignment."""
+        users_without_group = []
+
+        for user in users:
+            user_id = user['id']
+            group_check_url = f"{USERS_URL}/{user_id}/memberOf"
+            group_response = requests.get(group_check_url, headers=self._headers, timeout=30)
+
+            if group_response.status_code == 200:
+                groups = group_response.json().get('value', [])
+                if not groups:  # No group membership
+                    users_without_group.append(user)
+            else:
+                print(f"Fehler beim Abrufen der Gruppenmitgliedschaften für {user['userPrincipalName']}: {group_response.status_code}")
+                print(group_response.json())
+
+        print(f"\n\nEs wurden {len(users_without_group)} Nutzer ohne Gruppe gefunden.\n")
+        return users_without_group
