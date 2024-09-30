@@ -128,5 +128,21 @@ def find_user(email: str):
     user_handler.find_by_email(email)
 
 
+@cli.command()
+def cleanup_user_data():
+    """Find all orphan guest users and offer to delete them."""
+    env: Dict[str, str | None] = dict(environ) | dotenv_values()
+    token = authenticate(env)
+
+    user_handler = UserHandler(token)
+    all_guests = user_handler.get_guests()
+    guests_without_group = user_handler.filter_users_without_group(all_guests)
+    for guest in guests_without_group:
+        print(json.dumps(guest, indent=2))
+        if input("User without any groups. Delete? (y/N)") == 'y':
+            user_id = guest['id']
+            user_handler.delete_user_by_id(user_id)
+
+
 if __name__ == '__main__':
     cli()
