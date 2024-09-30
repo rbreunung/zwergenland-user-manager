@@ -57,7 +57,6 @@ class UserHandler:
         url = USERS_URL
 
         while url:
-            print(f"URL: {url}")
             parsed_url = urlparse(url)
 
             query_params = parse_qs(parsed_url.query)  # Extract the query parameters
