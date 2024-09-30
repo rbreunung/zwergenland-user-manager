@@ -82,7 +82,16 @@ class UserHandler:
         params = {
             "$filter": f"mail eq '{email}'"
         }
+        return self._get(params)
 
+    def find_guest_by_email(self, email):
+        """Find guest users by their actual email address (mail property)."""
+        params = {
+            "$filter": f"mail eq '{email}' and userType eq 'Guest'"
+        }
+        return self._get(params)
+
+    def _get(self, params: Dict):
         response = requests.get(USERS_URL, headers=self._headers, params=params, timeout=30)
 
         if response.status_code == 200:
@@ -136,3 +145,17 @@ class UserHandler:
 
         print(f"\n\nEs wurden {len(users_without_group)} Nutzer ohne Gruppe gefunden.\n")
         return users_without_group
+
+    def delete_user_by_id(self, user_id) -> bool:
+        """Delete a user user by their ID."""
+        delete_url = f"{USERS_URL}/{user_id}"
+
+        response = requests.delete(delete_url, headers=self._headers, timeout=30)
+
+        if response.status_code == 204:
+            print(f"User with ID {user_id} has been deleted.")
+            return True
+
+        print(f"Issue deleting user with ID {user_id}: Status {response.status_code}")
+        print(response.json())
+        return False

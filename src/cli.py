@@ -106,5 +106,27 @@ def read_users(input_file: TextIO, first_data_row: Optional[int]):
         json.dump([contact.to_dict() for contact in contacts], file, indent=2)
 
 
+@cli.command()
+@argument("user_id", type=str)
+def delete_user(user_id: str):
+    """Delete a user identified by its UUID."""
+    env: Dict[str, str | None] = dict(environ) | dotenv_values()
+    access_token = authenticate(env)
+
+    user_handler = UserHandler(access_token)
+    user_handler.delete_user_by_id(user_id)
+
+
+@cli.command()
+@argument("email", type=str)
+def find_user(email: str):
+    """Find user details of a user identified by email."""
+    env: Dict[str, str | None] = dict(environ) | dotenv_values()
+    access_token = authenticate(env)
+
+    user_handler = UserHandler(access_token)
+    user_handler.find_by_email(email)
+
+
 if __name__ == '__main__':
     cli()
